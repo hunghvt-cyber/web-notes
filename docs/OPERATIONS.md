@@ -302,3 +302,7 @@ Candidate adds fixed cache-miss reason counts and opt-in Server-Timing durations
 
 No real Notes were read; no Production writes, billing changes, IAM/WIF changes or deployments were made. No post-change S25 Ultra/iPad measurement is available and no speedup claim is made. Draft PR, source tree, exact CI result, Gemini review and rollback context are recorded in [performance investigation report](PERFORMANCE-INVESTIGATION-20261031.md) after hosted verification completes.
 
+## Large current-note cache candidate — 2026-11-01
+
+Investigation confirmed that current text above 256 KiB was rejected by the old per-note cap; the prior UTF-8 JSON size also included retained history. A frontend-only candidate now stores projected current fields within 1 MiB per note, 4 MiB aggregate and 12 entries, and loads history through the current GET only when the user opens History. Full evidence, regression coverage, cache-size rationale, synthetic timing anomaly, device limitations and the separate auth/store follow-up are in [PERFORMANCE-CACHE-20261101.md](PERFORMANCE-CACHE-20261101.md). The candidate is based on clean main `14d5dfbd4f19d54bb584dae6bede72947715020c`; source is not merged or deployed. Production remains `dpl_5ktkJTN9hn9c7Gk9oH6UNXTGsuzX`; rollback remains PR43 deployment `dpl_6JvV65W8wi6AQgyNfbUfA7gjC5LJ`. No device speedup is claimed.
+

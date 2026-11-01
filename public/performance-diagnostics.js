@@ -9,7 +9,8 @@ const PHASES = new Set([
   'response_body_ms', 'cache_read_ms', 'content_assign_ms', 'frame_after_update_ms',
   'retry_wait_ms', 'input_to_ack_ms', 'server_ack_ms', 'flow_total_ms', 'render_ms',
   'click_to_content_assign_ms', 'click_to_first_frame_ms', 'background_revision_assign_ms',
-  'server_pre_response_ms', 'server_auth_ms', 'server_store_init_ms', 'server_store_operation_ms'
+  'server_pre_response_ms', 'server_auth_ms', 'server_store_init_ms', 'server_store_operation_ms',
+  'cache_project_ms', 'cache_serialize_ms', 'cache_write_ms'
 ]);
 const ALLOWED_STATUS = new Set([400, 401, 403, 404, 408, 409, 413, 423, 429, 500, 502, 503, 504]);
 
