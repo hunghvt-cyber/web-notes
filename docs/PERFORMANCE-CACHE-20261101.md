@@ -58,3 +58,7 @@ Gemini key4 reviewed the frontend diff for private-data and session risks. It ra
 Gemini key5 reviewed the bounds and test coverage twice. It accepted the 1 MiB/4 MiB bounded cache policy after the explicit JSON-escaping case was added. Its statement that the large-note fixture showed stable frame timing is not supported by the measured 13-second warm click-to-frame span and is not adopted. No key received Notes, credentials or private logs.
 
 Local results: `npm test` 204/204, `npm run check:source` 50 files, `git diff --check` clean, and browser smoke 42/42. Local Node is `v22.23.4`; the repository targets Node 24, so hosted GitHub Actions remains the Node 24 check. These fixture/API tests do not qualify Vercel OIDC or live Cloud Firestore. Chromium on NAS does not represent S25 Ultra Android 16 or iPad mini 7, and the anomalous large-note frame timing remains unresolved. No real Notes or code were read. No speed improvement on a physical device is claimed.
+
+## Draft PR and hosted CI update
+
+Draft PR [#46](https://github.com/hunghvt-cyber/web-notes/pull/46) is open and unmerged. Candidate tree is `355388fa8cd1703d49ea85c0e82db0da8fd05cad`; remote PR head `84e4ecfed17354cc1ca5a34b7700c2990bdf9748` has the same tree. Hosted Notes simulation run [#540](https://github.com/hunghvt-cyber/web-notes/actions/runs/41266651737) passed on that head. The docs-only record update that follows will trigger hosted checks on the resulting PR head. No Production deployment was created; current Production/rollback references above remain unchanged.
