@@ -314,3 +314,8 @@ Investigation confirmed that current text above 256 KiB was rejected by the old 
 
 
 Draft performance PR [#46](https://github.com/hunghvt-cyber/web-notes/pull/46) adds bounded acknowledged-current-note cache support for large source notes. Candidate tree `355388fa8cd1703d49ea85c0e82db0da8fd05cad`; initial hosted CI run [#540](https://github.com/hunghvt-cyber/web-notes/actions/runs/41266651737) passed on head `84e4ecfed17354cc1ca5a34b7700c2990bdf9748`. See [PERFORMANCE-CACHE-20261101.md](PERFORMANCE-CACHE-20261101.md) for limits, synthetic fixtures, evidence and restrictions. PR remains draft/unmerged; no deployment was made. Production is still `dpl_5ktkJTN9hn9c7Gk9oH6UNXTGsuzX`; rollback remains `dpl_6JvV65W8wi6AQgyNfbUfA7gjC5LJ`.
+
+
+## PR #46 Production release — 04/11/2026
+
+PR #46 is merged and deployed: 1 MiB per current note, 4 MiB aggregate, 12 entries with LRU. Production deployment `dpl_7ocKN7iicWaABL7Mb53SZEpodehX` is READY from `cad718270e3a1bb444d539fb5369586753763c05`. GitHub Actions 41835442477 passed test/browser; health Firestore PASS. Both Notes and Homepage Notes assets match the release. Earlier draft-only statements above are historical. See [release evidence](PR46-PRODUCTION-RELEASE-20261104.md).
