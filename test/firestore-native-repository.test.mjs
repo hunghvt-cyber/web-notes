@@ -183,7 +183,8 @@ test('Firestore versions no longer embed duplicate history; read and backup stil
  assert.equal(Object.hasOwn(stored,'history'),false);
  const read=await repo.read(id);assert.deepEqual(read.history.map(x=>x.text),['old version']);
  const snapshot=await repo.exportLegacySnapshot();
- assert.deepEqual(snapshot.data.records[`note-${id}-${id}.json`]?[]:read.history.map(x=>x.text),['old version']);
+ const snapEntry=snapshot.data.catalog.entries[id],snapNote=JSON.parse(snapshot.data.records[snapEntry.head]);
+ assert.deepEqual(snapNote.value.history.map(x=>x.text),['old version']);
 });
 
 test('Code Inbox rejects active note and folder shares',async()=>{
