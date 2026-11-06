@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {createHash} from 'node:crypto';
+import {gunzipSync} from 'node:zlib';
 import {FirestoreNativeRepository} from '../lib/firestore-native-repository.mjs';
 import {compareSnapshots} from '../lib/firestore-migration.mjs';
 import {encodeSnapshot} from '../lib/store-backup.mjs';
@@ -134,12 +135,13 @@ test('sharing is checked on every read/write and revocation takes effect',async(
  await assert.rejects(repo.save(id,{text:'after revoke'},'0000000000000001:2',rid(105),{capabilityToken:token}),e=>e.status===403);
 });
 
-test('large content chunks only above threshold and reconstructs under hash check',async()=>{
+test('large repetitive content is gzip-compressed and hash-verified on read',async()=>{
  const db=new FakeFirestore(),repo=await setup(db),id=rid(4);
  const body='x'.repeat(800*1024);
  await repo.save(id,note(body),null,rid(106));
- const read=await repo.read(id);assert.equal(read.text.length,body.length);
- assert.equal(db.rows.get(`notesVaults/test-vault/notes/${id}/versions/000000000001`).data.chunkCount,2);
+ const read=await repo.read(id);assert.equal(read.text,body);
+ const manifest=db.rows.get(`notesVaults/test-vault/notes/${id}/versions/000000000001`).data;
+ assert.equal(manifest.payloadEncoding,'gzip');assert.equal(manifest.chunkCount,0);
 });
 
 test('each version is independently retained and the read API exposes the latest five prior versions',async()=>{
@@ -153,6 +155,35 @@ test('each version is independently retained and the read API exposes the latest
  assert.equal(out.text,'v6');
  assert.deepEqual(out.history.map(x=>x.text),['v5','v4','v3','v2','v1']);
  assert.equal(db.rows.has(`notesVaults/test-vault/notes/${id}/versions/000000000001`),true);
+});
+
+
+test('near-3-MiB note saves through multiple Firestore chunks and reads back intact',async()=>{
+ const db=new FakeFirestore(),repo=await setup(db),id=rid(18);
+ const body=Array.from({length:44000},(_,i)=>createHash('sha256').update(String(i)).digest('hex')).join('\\n');
+ assert.ok(Buffer.byteLength(body)<3*1024*1024);
+ const saved=await repo.save(id,note(body),null,rid(122));
+ const read=await repo.read(id);
+ assert.equal(read.revision,saved.revision);assert.equal(read.text,body);
+ const manifest=db.rows.get(`notesVaults/test-vault/notes/${id}/versions/000000000001`).data;
+ assert.equal(manifest.payloadEncoding,'gzip');assert.ok(manifest.chunkCount>0&&manifest.chunkCount<=6);
+ for(let i=0;i<manifest.chunkCount;i++){
+  const chunk=db.rows.get(`notesVaults/test-vault/notes/${id}/versions/000000000001/chunks/${String(i).padStart(4,'0')}`).data.payload;
+  assert.ok(chunk.length<=700*1024);
+ }
+});
+
+test('Firestore versions no longer embed duplicate history; read and backup still reconstruct it',async()=>{
+ const db=new FakeFirestore(),repo=await setup(db),id=rid(19);
+ const first=await repo.save(id,note('old version'),null,rid(123));
+ await repo.save(id,note('current version'),first.revision,rid(124));
+ const manifest=db.rows.get(`notesVaults/test-vault/notes/${id}/versions/000000000002`).data;
+ const packed=manifest.chunkCount===0?Buffer.from(manifest.payload,'base64'):Buffer.concat(Array.from({length:manifest.chunkCount},(_,i)=>db.rows.get(`notesVaults/test-vault/notes/${id}/versions/000000000002/chunks/${String(i).padStart(4,'0')}`).data.payload));
+ const stored=JSON.parse(gunzipSync(packed).toString('utf8'));
+ assert.equal(Object.hasOwn(stored,'history'),false);
+ const read=await repo.read(id);assert.deepEqual(read.history.map(x=>x.text),['old version']);
+ const snapshot=await repo.exportLegacySnapshot();
+ assert.deepEqual(snapshot.data.records[`note-${id}-${id}.json`]?[]:read.history.map(x=>x.text),['old version']);
 });
 
 test('Code Inbox rejects active note and folder shares',async()=>{
